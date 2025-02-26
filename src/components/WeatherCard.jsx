@@ -1,54 +1,64 @@
 import { useState, useEffect } from "react";
-import { FiSearch } from "react-icons/fi"; // Added search icon import
+import { FiSearch } from "react-icons/fi";
 import {
   WiThermometer,
   WiRaindrop,
   WiCloud,
   WiStrongWind,
-  WiSnow,
 } from "react-icons/wi";
 import { getWeatherData } from "../api/weatherService";
 
 export default function WeatherApp() {
-  const [city, setCity] = useState("Pune");
+  const [city, setCity] = useState("");
   const [searchTerm, setSearchTerm] = useState(city);
   const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [backgroundImage, setBackgroundImage] = useState("/sunny.jpg");
 
   const handleSearch = (e) => {
     e.preventDefault();
     setCity(searchTerm);
   };
-
   useEffect(() => {
     const fetchWeather = async () => {
       if (!city) {
         setError("Please enter a city");
         return;
       }
-      setLoading(true);
       setError("");
       try {
         const data = await getWeatherData(city);
         setWeather(data);
-        console.log("weather", data);
+        // console.log("weather", data);
       } catch (error) {
         setError("Failed to fetch weather data. Try again.");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchWeather();
   }, [city]);
 
+  useEffect(() => {
+    if (weather) {
+      const date = new Date(weather.time);
+      const hours = date.getHours();
+
+      if (hours >= 5 && hours < 17) {
+        setBackgroundImage("/morning.jpg");
+      } else if (hours >= 17 && hours < 20) {
+        setBackgroundImage("/evening.jpg");
+      } else {
+        setBackgroundImage("/night.jpg");
+      }
+    }
+  }, [weather]);
+
   return (
     <div
       className="flex flex-col md:flex-row w-full h-screen bg-cover bg-center"
-      style={{ backgroundImage: "url('/sunny.jpg')" }}
+      style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      <div className="md:w-7/10 w-full md:h-full h-4/10 flex flex-col justify-end p-20 text-white bg-opacity-100">
+      <div className="md:w-6/10 w-full md:h-full h-4/10 flex flex-col justify-end p-20 text-white bg-opacity-100">
         {weather ? (
           <div className="flex items-end gap-4">
             <h1 className="text-6xl font-bold mb-2">{weather.temperature}°C</h1>
@@ -57,15 +67,17 @@ export default function WeatherApp() {
               <p className="text-3xl">{weather.city}</p>
               <p className="text-lg">{weather.formattedTime}</p>
             </div>
-            <span className="text-5xl">☀️</span>
+            <span className="text-5xl">
+              {{ 0: "☀️", 1: "⛅", 2: "🌧️" }[weather?.weathercode] || "❓"}
+            </span>
           </div>
         ) : (
-          <p>Loading weather data...</p>
+          <p>{error ? error : "Loading weather data"}</p>
         )}
       </div>
 
-      <div className="md:w-3/10 w-full md:h-full h-6/10 p-6 flex flex-col backdrop-blur-md bg-white/30">
-        <form onSubmit={handleSearch} className="mb-4 mx-6 pr-8">
+      <div className="md:w-4/10 w-full md:h-full h-6/10 p-6 flex flex-col backdrop-blur-md bg-white/30">
+        <form onSubmit={handleSearch} className="mb-4 mx-12 pr-8">
           <div className="flex items-center border-b border-gray-700 w-relative">
             <input
               type="text"
@@ -80,7 +92,7 @@ export default function WeatherApp() {
           </div>
         </form>
 
-        <div className="space-y-5 text-gray-700 mx-6 pr-8">
+        <div className="space-y-5 text-gray-700 mx-12 pr-8">
           <h3 className="text-md">Weather Details...</h3>
           {weather ? (
             <div>
@@ -118,7 +130,7 @@ export default function WeatherApp() {
               </div>
             </div>
           ) : (
-            <p>Loading weather data...</p>
+            <p>{error ? error : "Loading weather data"}</p>
           )}
         </div>
       </div>
