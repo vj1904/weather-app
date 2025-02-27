@@ -44,7 +44,7 @@ export default function WeatherApp() {
       const hours = date.getHours();
 
       if (hours >= 5 && hours < 17) {
-        setBackgroundImage("/morning.jpg");
+        setBackgroundImage("/sunny.jpg");
       } else if (hours >= 17 && hours < 20) {
         setBackgroundImage("/evening.jpg");
       } else {
